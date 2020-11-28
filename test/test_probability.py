@@ -58,17 +58,17 @@ class ProbabilityCase(unittest.TestCase):
 
     def test_bernoulli(self):
         # coin flip simulation for the given coin side with 100 sample of size 100
-        population_mean, population_variance = self.simulate(bernoulli_trial, 0.5);
+        population_mean, population_std = self.simulate(bernoulli_trial, 0.5);
 
         self.assertAlmostEqual(population_mean, 0.5, places=1);
-        self.assertAlmostEqual(population_variance, 0.25, places=2);
+        se.assertAlmostEqual(population_std, 0.5, places=1);
 
     def test_binomial_trial(self):
         # coin flip simulation for two sequential coin sides with 100 sample of size 100
-        population_mean, population_variance = self.simulate(binomial_trial, 0.5, 2);
+        population_mean, population_std = self.simulate(binomial_trial, 0.5, 2);
 
         self.assertAlmostEqual(population_mean, 1, places=1);
-        self.assertAlmostEqual(population_variance, 0.5, places=1);
+        self.assertAlmostEqual(population_std, 0.7, places=1);
 
 
     def simulate(self, func, *args):
@@ -77,7 +77,7 @@ class ProbabilityCase(unittest.TestCase):
         trial_size = 100;
         
         sample_means = [];
-        sample_variances = [];
+        sample_stds = [];
 
         for i in range(num_trials):
             trial_results = [];
@@ -86,13 +86,13 @@ class ProbabilityCase(unittest.TestCase):
                 trial_results.append(func(*args));
 
             sample_means.append(sum(trial_results) / trial_size);
-            squared_errors = [(trial_result - sample_means[-1])** 2 for trial_result in trial_results];
-            sample_variances.append(sum(squared_errors) / trial_size);
+            squared_errors = [(trial_result - sample_means[-1]) ** 2 for trial_result in trial_results];
+            sample_stds.append((sum(squared_errors) / trial_size) ** 0.5);
 
         population_mean = sum(sample_means) / num_trials;
-        population_variance = sum(sample_variances) / num_trials;
+        population_std = sum(sample_stds) / num_trials;
 
-        return population_mean, population_variance;
+        return population_mean, population_std;
 
     def multiple_test(self, test_cases, func):
          x_vals, y_vals = zip(*test_cases);
