@@ -77,19 +77,20 @@ class ProbabilityCase(unittest.TestCase):
         trial_size = 100;
         
         sample_means = [];
-        squared_errors= [];
+        sample_stds = [];
 
         for i in range(num_trials):
             trial_results = [];
 
-            for j in range(trial_size):
+            for j in range(sample_size):
                 trial_results.append(func(*args));
 
-            sample_means.append(sum(trial_results) / trial_size);
-            squared_errors += [(trial_result - sample_means[-1]) ** 2 for trial_result in trial_results];
+            sample_means.append(sum(trial_results) / sample_size);
+            squared_errors = [(trial_result - sample_means[-1]) ** 2 for trial_result in trial_results];
+            sample_stds = (sum(squared_errors) / sample_size) ** 0.5;
 
         population_mean = sum(sample_means) / num_trials;
-        population_std = sum(squared_errors) / (num_trials * sample_size);
+        population_std = sum(sample_stds) / num_trials;
         sem = population_std / num_trials ** 0.5;
 
         return population_mean, population_std, sem;
