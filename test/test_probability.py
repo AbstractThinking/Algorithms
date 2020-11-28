@@ -2,8 +2,10 @@ import unittest;
 
 from algorithms.probability import *;
 
-
 class ProbabilityCase(unittest.TestCase):
+
+    def setUp(self):
+        self.alpha = 0.05;
 
     def test_complement(self):
         # not occur the given event in the trial
@@ -51,49 +53,57 @@ class ProbabilityCase(unittest.TestCase):
         self.assertAlmostEqual(normal_cdf(-1), 0.1587, places=4);
         self.assertAlmostEqual(normal_cdf(1), 0.8413, places=4);
 
+    def test_normal_probability(self):
         # empirical rule (68-95-99.7 rule)
-        self.assertAlmostEqual(normal_cdf(1) - normal_cdf(-1), 0.6827, places=4);
-        self.assertAlmostEqual(normal_cdf(2) - normal_cdf(-2), 0.9545, places=4);
-        self.assertAlmostEqual(normal_cdf(3) - normal_cdf(-3), 0.9973, places=4);
+        self.assertAlmostEqual(normal_probability(-1,1), 0.6827, places=4);
+        self.assertAlmostEqual(normal_probability(-2,2), 0.9545, places=4);
+        self.assertAlmostEqual(normal_probability(-3,3), 0.9973, places=4);
 
-    def test_bernoulli(self):
-        # coin flip simulation for the given coin side with 100 sample of size 100
-        population_mean, population_std, sem = self.simulate(bernoulli_trial, 0.5);
+    def test_trials(self):
+        pass;
+        # sample_size = 1000;
+        # trials = [bernoulli_trial(0.5) for i in range(sample_size)];
+        # trial_mu, trial_sigma = measure(trials);
+        # model_prob = 0.5;
+        # model_mu, model_sigma = binomial_to_normal(sample_size, model_prob);
+        # lower_bound, upper_bound = inverse_normal_cdf(model_prob);
+        # alpha_risk = 0.05; # accept as true the false alternative hypothesis (type 1 error / false positive)
+        # beta_risk = normal_probability(); # accept as true the false null hypothesis (type 2 error / false negative)
+        # power = 1 - beta_risk;
 
-        self.assertAlmostEqual(population_mean, 0.5, places=1);
-        self.assertAlmostEqual(population_std, 0.5, places=1);
+    def test_bernoulli_trial(self):
+        # z-score / confidence level | 1.65 / 90% | 1.96 / 95% | 2.58 / 99%
+        mu, sem = self.simulate(1000, bernoulli_trial, 0.5);
+        z_score = (mu - 0.5) / sem; # number of standard errors from the mean
+        # probability of the estimator be this close of the mean
+        p_value = normal_probability(0.5 - z_score * sem, 0.5 + z_score * sem, mu=0.5, sigma=0.5);
+        # eventual closeness of this level almost impossible
+        self.assertLessEqual(p_value, self.alpha);
 
     def test_binomial_trial(self):
-        # coin flip simulation for two sequential coin sides with 100 sample of size 100
-        population_mean, population_std, sem = self.simulate(binomial_trial, 0.5, 2);
+        # z-score / confidence level | 1.65 / 90% | 1.96 / 95% | 2.58 / 99%
+        mu, sem = self.simulate(1000, binomial_trial, 2, 0.5);
+        z_score = (mu - 1) / sem; # number of standard errors from the mean
+        # probability of the estimator be this close of the mean
+        p_value = normal_probability(1 - z_score * sem, 1 + z_score * sem, mu=1, sigma=0.70710678118);
+        # eventual closeness of this level almost impossible
+        self.assertLessEqual(p_value, self.alpha);
 
-        self.assertAlmostEqual(population_mean, 1, places=1);
-        self.assertAlmostEqual(population_std, 0.7, places=1);
+    def test_normal_bounds(self):
+        self.assertAlmostEqual(normal_bounds(0.90)[0], -1.65, places=1);
+        self.assertAlmostEqual(normal_bounds(0.90)[1], 1.65, places=1);
+        self.assertAlmostEqual(normal_bounds(0.95)[0], -1.96, places=1);
+        self.assertAlmostEqual(normal_bounds(0.95)[1], 1.96, places=1);
+        self.assertAlmostEqual(normal_bounds(0.99)[0], -2.58, places=1);
+        self.assertAlmostEqual(normal_bounds(0.99)[1], 2.58, places=1);
 
+    def simulate(self, num_trials,func, *args):
+        results = [func(*args) for i in range(num_trials)];        
+        mean_estimator = sum(results) / num_trials;
+        std_estimator = sum((result -mean_estimator) ** 2 for result in results) / num_trials;
+        sem = std_estimator / num_trials ** 0.5;
 
-    def simulate(self, func, *args):
-        # central limit theorem for computing population mean and variance
-        num_trials = 100;
-        trial_size = 100;
-        
-        sample_means = [];
-        sample_stds = [];
-
-        for i in range(num_trials):
-            trial_results = [];
-
-            for j in range(sample_size):
-                trial_results.append(func(*args));
-
-            sample_means.append(sum(trial_results) / sample_size);
-            squared_errors = [(trial_result - sample_means[-1]) ** 2 for trial_result in trial_results];
-            sample_stds = (sum(squared_errors) / sample_size) ** 0.5;
-
-        population_mean = sum(sample_means) / num_trials;
-        population_std = sum(sample_stds) / num_trials;
-        sem = population_std / num_trials ** 0.5;
-
-        return population_mean, population_std, sem;
+        return mean_estimator, sem;
 
     def multiple_test(self, test_cases, func):
          x_vals, y_vals = zip(*test_cases);
