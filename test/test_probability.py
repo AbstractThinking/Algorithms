@@ -59,18 +59,6 @@ class ProbabilityCase(unittest.TestCase):
         self.assertAlmostEqual(normal_probability(-2,2), 0.9545, places=4);
         self.assertAlmostEqual(normal_probability(-3,3), 0.9973, places=4);
 
-    def test_trials(self):
-        pass;
-        # sample_size = 1000;
-        # trials = [bernoulli_trial(0.5) for i in range(sample_size)];
-        # trial_mu, trial_sigma = measure(trials);
-        # model_prob = 0.5;
-        # model_mu, model_sigma = binomial_to_normal(sample_size, model_prob);
-        # lower_bound, upper_bound = inverse_normal_cdf(model_prob);
-        # alpha_risk = 0.05; # accept as true the false alternative hypothesis (type 1 error / false positive)
-        # beta_risk = normal_probability(); # accept as true the false null hypothesis (type 2 error / false negative)
-        # power = 1 - beta_risk;
-
     def test_bernoulli_trial(self):
         # z-score / confidence level | 1.65 / 90% | 1.96 / 95% | 2.58 / 99%
         mu, sem = self.simulate(1000, bernoulli_trial, 0.5);
