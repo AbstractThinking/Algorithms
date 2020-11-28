@@ -58,14 +58,14 @@ class ProbabilityCase(unittest.TestCase):
 
     def test_bernoulli(self):
         # coin flip simulation for the given coin side with 100 sample of size 100
-        population_mean, population_std = self.simulate(bernoulli_trial, 0.5);
+        population_mean, population_std, sem = self.simulate(bernoulli_trial, 0.5);
 
         self.assertAlmostEqual(population_mean, 0.5, places=1);
-        se.assertAlmostEqual(population_std, 0.5, places=1);
+        self.assertAlmostEqual(population_std, 0.5, places=1);
 
     def test_binomial_trial(self):
         # coin flip simulation for two sequential coin sides with 100 sample of size 100
-        population_mean, population_std = self.simulate(binomial_trial, 0.5, 2);
+        population_mean, population_std, sem = self.simulate(binomial_trial, 0.5, 2);
 
         self.assertAlmostEqual(population_mean, 1, places=1);
         self.assertAlmostEqual(population_std, 0.7, places=1);
@@ -91,8 +91,9 @@ class ProbabilityCase(unittest.TestCase):
 
         population_mean = sum(sample_means) / num_trials;
         population_std = sum(sample_stds) / num_trials;
+        sem = population_std / num_trials ** 0.5;
 
-        return population_mean, population_std;
+        return population_mean, population_std, sem;
 
     def multiple_test(self, test_cases, func):
          x_vals, y_vals = zip(*test_cases);
