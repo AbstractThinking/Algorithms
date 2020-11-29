@@ -2,6 +2,7 @@ import unittest;
 
 from algorithms.probability import *;
 
+
 class ProbabilityCase(unittest.TestCase):
 
     def setUp(self):
@@ -46,6 +47,10 @@ class ProbabilityCase(unittest.TestCase):
     def test_uniform_cdf(self):
         self._multiple_test([(-2, 0), (0, 0), (1/2, 0.5), (3/4-1/4, 0.5), (1, 1), (2, 1)], uniform_cdf);
 
+    def _multiple_test(self, test_cases, func):
+         x_vals, y_vals = zip(*test_cases);
+         self.assertSequenceEqual(list(map(func, x_vals)), y_vals);   
+ 
     def test_normal_cdf(self):
         # check if less than mu probability is 50% (0.5)
         self.assertEqual(normal_cdf(0), 0.5);
@@ -60,12 +65,20 @@ class ProbabilityCase(unittest.TestCase):
         self.assertAlmostEqual(normal_probability(-2,2), 0.9545, places=4);
         self.assertAlmostEqual(normal_probability(-3,3), 0.9973, places=4);
 
-
     def test_bernoulli_trial(self):
         self.assertLessEqual(self._get_p_value(0.5, 0.5, bernoulli_trial, 0.5), self.alpha);
 
     def test_binomial_trial(self):
         self.assertLessEqual(self._get_p_value(1, 0.70710678118, binomial_trial, 2, 0.5), self.alpha);
+
+    def _get_p_value(self, mu, sigma, func, *args):
+        mu_bar, sem = self._simulate(10000, func, *args);
+
+        # number of standard errors from the mean
+        z_score = (mu_bar - mu) / sem;
+
+        # return probability of the estimator be this close of the mean
+        return normal_probability(mu - z_score * sem, mu + z_score * sem, mu=mu, sigma=sigma);
 
     def test_normal_bounds(self):
         self.assertAlmostEqual(normal_bounds(0.95)[0], -1.96, places=1);
@@ -87,19 +100,6 @@ class ProbabilityCase(unittest.TestCase):
         sse = [(val - mean) ** 2 for val in vals];
         return self._get_mean(sse, n);        
 
-
-    def _multiple_test(self, test_cases, func):
-         x_vals, y_vals = zip(*test_cases);
-         self.assertSequenceEqual(list(map(func, x_vals)), y_vals);
-
-    def _get_p_value(self, mu, sigma, func, *args):
-        mu_bar, sem = self._simulate(10000, func, *args);
-
-        # number of standard errors from the mean
-        z_score = (mu_bar - mu) / sem;
-
-        # return probability of the estimator be this close of the mean
-        return normal_probability(mu - z_score * sem, mu + z_score * sem, mu=mu, sigma=sigma);
-
+    
 if __name__ == '__main__':
     unittest.main();
